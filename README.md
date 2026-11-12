@@ -5,13 +5,13 @@
 [![CI](https://github.com/moonetix/offerwall-laravel/actions/workflows/ci.yml/badge.svg)](https://github.com/moonetix/offerwall-laravel/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-docs.moonetix.com-004ABB)](https://docs.moonetix.com/postbacks)
-[![Get keys](https://img.shields.io/badge/get%20keys-moonetix.com-004ABB)](https://moonetix.com/register)
+[![Get keys](https://img.shields.io/badge/get%20keys-moonetix.com-004ABB)](https://moonetix.com/register?from=github-offerwall-laravel)
 [![Laravel 12](https://img.shields.io/badge/laravel-12-FF2D20)](https://moonetix.com/academy/integrations/offerwall-php-laravel)
 [![PHP 8.2+](https://img.shields.io/badge/php-8.2%2B-777BB4)](https://moonetix.com/integrations/website)
 
-A small, complete Laravel app with the [Moonetix](https://moonetix.com) offerwall. The Earn page signs the offerwall link on the server for the signed-in user. The postback route verifies the hash, credits each `transaction_id` once, and takes back only what it credited. Moonetix is a pay-per-result affiliate network: your users earn your own currency by completing offers, and you earn per completed offer.
+A small, complete Laravel app with the [Moonetix](https://moonetix.com) offerwall. The Earn page signs the offerwall link on the server for the signed-in user. The postback route verifies the hash, credits each `transaction_id` once, and takes back only what it credited. Moonetix is an affiliate network: your users earn your own currency by completing offers, and you earn per completed offer.
 
-> **Get your App ID and keys: sign up free at https://moonetix.com/register**
+> **Get your App ID and keys: sign up free at https://moonetix.com/register?from=github-offerwall-laravel**
 
 ## What you get
 
@@ -137,6 +137,14 @@ curl -i "http://127.0.0.1:8000/moonetix/postback?tx=$TX&user=$U&reward=$R&status
 
 Run it twice: the balance goes up once. Set `S=2` and run it again: the 150 coins come back off.
 
+For a full pass over the route, run [postback-tester](https://github.com/moonetix/postback-tester) against `php artisan serve`. It signs requests the way Moonetix does and sends a credit and its retry, three kinds of reversal, four forged or unsigned postbacks and five parallel copies of one credit. Its transaction IDs start with `test_`, which this app verifies and logs without crediting, so the run checks the signature handling and the answers; the PHPUnit tests above cover the balances.
+
+```bash
+export MOONETIX_POSTBACK_KEY=your-postback-secret-key   # same value as in .env
+npx github:moonetix/postback-tester --preset moonetix \
+  'http://127.0.0.1:8000/moonetix/postback?tx={transaction_id}&user={user_id}&reward={reward}&status={status}&event={event_id}&payout={payout}&offer={offer_name}&hash={hash}' --user 1
+```
+
 ## Test it with Moonetix
 
 1. Deploy to a public https host and save the postback URL above on the Postback page.
@@ -144,6 +152,17 @@ Run it twice: the balance goes up once. Set `S=2` and run it again: the 150 coin
 3. Click **Send a test postback**, once with status 1 and once with status 2. The result window should show 200 and `Test postback: hash OK, nothing credited`. You can also send one from the Postback page.
 4. Every attempt and your server's answer are listed under Reports, Postbacks.
 5. Open the offerwall from a normal home or mobile connection. VPNs, proxies, Tor and data center networks see a block page.
+
+## If postbacks fail
+
+| Reports, Postbacks shows | Cause | Fix |
+| --- | --- | --- |
+| `403 Invalid hash` | Wrong key, a missing or repeated parameter, or a value changed on the way. | Use the postback secret key, not the link hash salt. Paste the logged URL into the [hash checker](https://moonetix.com/tools/postback-hash-checker). |
+| `400 Bad parameters` | Signed, but `tx` is empty or over 191 characters, `reward` is not a plain number, or `status` is not 1 or 2. | Map each macro to the parameter name in the postback URL above. |
+| `200 Unknown user, nothing credited` | The `user_id` is not a `users.id` here, for example `test_user`. | Expected for tests to other IDs. If your IDs are UUIDs, change `findUser()`. |
+| `500` and `MOONETIX_POSTBACK_KEY is not set` in `storage/logs/laravel.log` | The key is missing, or the config cache predates it. | Set it in `.env`, then `php artisan config:clear` (or `config:cache` again). |
+| `500` with a database error in the log | The write failed and was rolled back. Moonetix retries. | Run `php artisan migrate` and check the database connection. |
+| `301` or `302` | An https redirect or trailing-slash rule in front of Laravel, or an `auth` middleware sending guests to `/login`. Moonetix does not follow redirects. | Save the final https URL, and keep the route outside `auth` as `routes/moonetix.php` does. |
 
 ## Learn more
 
@@ -156,7 +175,7 @@ Run it twice: the balance goes up once. Set `S=2` and run it again: the 150 coin
 
 ## Get started
 
-**Get your App ID and keys: sign up free at https://moonetix.com/register**
+**Get your App ID and keys: sign up free at https://moonetix.com/register?from=github-offerwall-laravel**
 
 Every publisher application is reviewed by hand. Once you are approved, add your website as an app, set your currency name and rate, and paste the keys into `.env`.
 
@@ -170,9 +189,24 @@ Every publisher application is reviewed by hand. Once you are approved, add your
 | [telegram-mini-app-offerwall](https://github.com/moonetix/telegram-mini-app-offerwall) | Telegram Mini App with an offerwall |
 | [discord-rewards-bot](https://github.com/moonetix/discord-rewards-bot) | Discord bot that rewards offer completions |
 | [moonetix-offerwall-wordpress](https://github.com/moonetix/moonetix-offerwall-wordpress) | WordPress plugin |
-| [offerwall-laravel](https://github.com/moonetix/offerwall-laravel) | Laravel Earn page and postback route |
 | [offerwall-django](https://github.com/moonetix/offerwall-django) | Django Earn page and postback view |
 | [offerwall-express](https://github.com/moonetix/offerwall-express) | Express 5 Earn page and postback route |
+| [offerwall-vue-nuxt](https://github.com/moonetix/offerwall-vue-nuxt) | Nuxt Earn page and postback server route |
+| [offerwall-supabase](https://github.com/moonetix/offerwall-supabase) | Supabase Edge Functions backend |
+| [offerwall-react-vite](https://github.com/moonetix/offerwall-react-vite) | React and Vite front end |
+| [rewards-site-starter](https://github.com/moonetix/rewards-site-starter) | Starter for a rewards website |
+| [offerwall-godot](https://github.com/moonetix/offerwall-godot) | Godot example |
+| [offerwall-flutter-example](https://github.com/moonetix/offerwall-flutter-example) | Flutter example app |
+| [offerwall-chrome-extension](https://github.com/moonetix/offerwall-chrome-extension) | Chrome extension example |
+| [postback-tester](https://github.com/moonetix/postback-tester) | Sends signed test postbacks and catches double credits, missed reversals and forged requests |
+| [signup-guard](https://github.com/moonetix/signup-guard) | Sign-up risk checks for Node.js and PHP: disposable emails, datacenter and Tor IPs |
+| [datacenter-ip-ranges](https://github.com/moonetix/datacenter-ip-ranges) | Daily cloud, Tor and iCloud Private Relay IP ranges from official feeds |
+| [offerwall-fraud-playbook](https://github.com/moonetix/offerwall-fraud-playbook) | Fraud playbook for offerwall and rewards publishers, with tested code |
+| [reward-economy-kit](https://github.com/moonetix/reward-economy-kit) | Integer points math: payout to points, bonuses, reversals, cash-out pricing |
+| [referral-engine](https://github.com/moonetix/referral-engine) | Referral codes, attribution and a clawback-safe commission ledger |
+| [gamification-kit](https://github.com/moonetix/gamification-kit) | Streaks, XP levels, quests and leaderboards that survive time zones and DST |
+| [affiliate-postback-macros](https://github.com/moonetix/affiliate-postback-macros) | Postback macros and signatures of tracking platforms and offerwalls |
+| [country-tiers](https://github.com/moonetix/country-tiers) | Tier 1, 2 and 3 countries as JSON and CSV, with helpers in JavaScript, PHP and Python |
 
 ## License
 
