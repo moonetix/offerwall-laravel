@@ -7,7 +7,7 @@
     "homepage": "https://moonetix.com/academy/integrations/offerwall-php-laravel",
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "laravel/framework": "13.40.0"
     },
     "require-dev": {
