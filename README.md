@@ -1,13 +1,13 @@
 # Moonetix Offerwall for Laravel
 
-**A Laravel 12 app with an Earn page and a postback route that credits every offer exactly once.**
+**A Laravel 13 app with an Earn page and a postback route that credits every offer exactly once.**
 
 [![CI](https://github.com/moonetix/offerwall-laravel/actions/workflows/ci.yml/badge.svg)](https://github.com/moonetix/offerwall-laravel/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-docs.moonetix.com-004ABB)](https://docs.moonetix.com/postbacks)
 [![Get keys](https://img.shields.io/badge/get%20keys-moonetix.com-004ABB)](https://moonetix.com/register?from=github-offerwall-laravel)
-[![Laravel 12](https://img.shields.io/badge/laravel-12-FF2D20)](https://moonetix.com/academy/integrations/offerwall-php-laravel)
-[![PHP 8.2+](https://img.shields.io/badge/php-8.2%2B-777BB4)](https://moonetix.com/integrations/website)
+[![Laravel 13](https://img.shields.io/badge/laravel-13-FF2D20)](https://moonetix.com/academy/integrations/offerwall-php-laravel)
+[![PHP 8.3+](https://img.shields.io/badge/php-8.3%2B-777BB4)](https://moonetix.com/integrations/website)
 
 A small, complete Laravel app with the [Moonetix](https://moonetix.com) offerwall. The Earn page signs the offerwall link on the server for the signed-in user. The postback route verifies the hash, credits each `transaction_id` once, and takes back only what it credited. Moonetix is an affiliate network: your users earn your own currency by completing offers, and you earn per completed offer.
 
@@ -43,7 +43,7 @@ sequenceDiagram
 
 ## Quick start
 
-You need PHP 8.2 or later with `pdo_sqlite`, and Composer.
+You need PHP 8.3 or later with `pdo_sqlite`, and Composer.
 
 ```bash
 git clone https://github.com/moonetix/offerwall-laravel.git
@@ -93,7 +93,7 @@ The offerwall iframe only loads on https pages of the website you registered for
 | `routes/moonetix.php` and the `then:` callback in `bootstrap/app.php` | Copy. Loads the postback route without session or CSRF. |
 | `config/services.php` | Add the `moonetix` block. |
 
-Skip `LoginController`, `login.blade.php` and the seeder: they only exist so this example runs on its own. Keep your own authentication. The code was tested on Laravel 12.72.0. It only uses APIs that Laravel 11 also has, but it was not run on 11 here.
+Skip `LoginController`, `login.blade.php` and the seeder: they only exist so this example runs on its own. Keep your own authentication. The code was tested on Laravel 13.40.0. The same code ran on Laravel 12.72.0 before the upgrade, with no changes.
 
 Balances are stored in `users.balance_micro` as whole millionths of a coin, in a signed 64-bit integer. Decimal rewards such as `0.75` and `1.23456` add up exactly on SQLite, MySQL and PostgreSQL, with no floating point.
 
